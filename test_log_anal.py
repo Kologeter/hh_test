@@ -1,12 +1,5 @@
-import re
-import sys
-from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Optional, Tuple, Dict, List
-
 import pytest
-from concurrent.futures import ProcessPoolExecutor, as_completed
-
 from main import *
 
 
