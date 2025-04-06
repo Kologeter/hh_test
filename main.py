@@ -6,12 +6,6 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import Optional, Tuple, Dict, List
 
 def parse_log_line(line: str) -> Optional[Tuple[str, str]]:
-    """
-    Парсит строку лога для модуля django.request и возвращает кортеж (handler, level).
-    В логах после 'django.request:' могут встречаться префиксы вроде 'GET' или 'Internal Server Error:'.
-    Функция ищет первое вхождение подстроки, начинающейся с '/', и считает её handler (например, "/api/v1/reviews/").
-    Если строка не соответствует ожидаемому формату, возвращает None.
-    """
     pattern = re.compile(
         r'^(?P<datetime>\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2},\d{3})\s+'
         r'(?P<level>DEBUG|INFO|WARNING|ERROR|CRITICAL)\s+'
@@ -26,9 +20,6 @@ def parse_log_line(line: str) -> Optional[Tuple[str, str]]:
     return None
 
 def process_log_file(path: str) -> Dict[str, Counter]:
-    """
-    Обрабатывает один файл логов, возвращая статистику по handler и уровням логирования.
-    """
     local_stats: Dict[str, Counter] = defaultdict(Counter)
     try:
         with open(path, 'r', encoding='utf-8') as f:
@@ -46,7 +37,6 @@ def process_log_file(path: str) -> Dict[str, Counter]:
 def process_logs(file_paths: List[str]) -> Dict[str, Counter]:
     """
     Доп задание сделать обработку параллеьно.
-    Здесь это супер неэффективно ахахахахах, как и малтифрединг
     """
     stats: Dict[str, Counter] = defaultdict(Counter)
     with ProcessPoolExecutor() as executor:
@@ -70,11 +60,9 @@ def print_report_handlers(stats: Dict[str, Counter]) -> None:
 
     log_levels_order = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
-    # Формат: HANDLER - шириной 20 символов, остальные колонки по 8 символов, выравнивание по правому краю.
     header_format = "{:<20}" + "".join(["{:>8}" for _ in log_levels_order])
     row_format = "{:<20}" + "".join(["{:>8}" for _ in log_levels_order])
 
-    # Заголовок
     print(header_format.format("HANDLER", *log_levels_order))
 
     totals = {lvl: 0 for lvl in log_levels_order}
@@ -86,12 +74,11 @@ def print_report_handlers(stats: Dict[str, Counter]) -> None:
             totals[level] += count
         print(row_format.format(handler, *row_data))
 
-    # Итоговая строка
     print()
     sum_row = [totals[lvl] for lvl in log_levels_order]
     print(row_format.format("", *sum_row))
 
-# Пример дополнительного отчёта: суммарная статистика по уровням логирования (без разбивки по handler)
+# Пример дополнительного отчёта: суммарная статистика по уровням логирования (без разбивки по ручкам)
 def print_report_by_level(stats: Dict[str, Counter]) -> None:
     """
     Выводит суммарную статистику по уровням логирования для всех handler.
@@ -103,7 +90,6 @@ def print_report_by_level(stats: Dict[str, Counter]) -> None:
     for level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
         print(f"{level:>8}: {level_totals.get(level, 0)}")
 
-# Словарь отчетов. Для добавления нового отчёта достаточно написать новую функцию и добавить ее сюда.
 REPORTS = {
     'handlers': print_report_handlers,
     'by_level': print_report_by_level,
@@ -116,7 +102,7 @@ def main() -> None:
     parser.add_argument(
         'log_files',
         nargs='+',
-        help='Пути к лог-файлам (например, app1.log app2.log app3.log)'
+        help='Пути к лог-файлам (app1.log app2.log app3.log)'
     )
     parser.add_argument(
         '--report',
